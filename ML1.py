@@ -7,6 +7,7 @@ from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.model_selection import GridSearchCV
+from sklearn import svm
 from util import preprocess_text, shuffle_dataset, split_data
 import string
 
@@ -58,6 +59,18 @@ def len_vec(train, test):
     return  train_len.reshape(-1,1), test_len.reshape(-1,1)
 
 
+def punc_vec(train, test):
+    punc_len_train = np.zeros(len(train), dtype=np.int)
+    for i, message in enumerate(train):
+        punc = [w for w in message if w in string.punctuation]
+        punc_len_train[i] = len(punc)
+
+    punc_len_test = np.zeros(len(test), dtype=np.int)
+    for i, message in enumerate(test):
+        punc = [w for w in message if w in string.punctuation]
+        punc_len_test[i] = len(punc)
+
+    return punc_len_train.reshape(-1, 1), test_len.reshape(-1, 1)
 
 
 
@@ -68,6 +81,10 @@ def MN_NB():
 
     return clf
 
+def SVM():
+    clf = svm.SVC()
+
+    return clf
 
 def RF():
     parameters1 = {'n_estimators': [n for n in range(50, 300, 50)],
@@ -158,9 +175,11 @@ train_count, test_count = count_vec(train[0], test[0])
 train_tf, test_tf = tfidf_vec(train[0], test[0])
 train_len, test_len = len_vec(train[0], test[0])
 punc_len_train, punc_len_test = punc_vec(train[0], test[0])
+
 """### Train and evaluate models"""
 
 naive_bayes = MN_NB()
+print("-----Model: Naive Bayes----")
 print("CountVectorizer:")
 fit_eval(naive_bayes, train_count, y_train, test_count, y_test)
 print("TfidfVectorizer:")
@@ -171,15 +190,36 @@ print("PuncVector")
 fit_eval(naive_bayes, punc_len_train, y_train, punc_len_test, y_test)
 
 random_forest = RF()
+print("-----Model: RandomForest ----")
 print("CountVectorizer:")
 fit_eval(random_forest, train_count, y_train, test_count, y_test)
 print("TfidfVectorizer:")
 fit_eval(random_forest, train_tf, y_train, test_tf, y_test)
+print("LengthVector:")
+fit_eval(random_forest, train_len, y_train, test_len, y_test)
+print("PuncVector:")
+fit_eval(random_forest, punc_len_train, y_train, punc_len_test, y_test
 
 xgb = xgb(train_count, y_train, test_count)
+print("-----Model: xgboost ----")
 print("CountVectorizer:")
 fit_eval(xgb, train_count, y_train, test_count, y_test)
-
 xgb = xgb(train_tf, y_train, test_tf)
 print("CountVectorizer:")
 fit_eval(xgb, train_tf, y_train, test_tf, y_test)
+rint("LengthVector:")
+fit_eval(xgb, train_len, y_train, test_len, y_test)
+print("PuncVector:")
+fit_eval(xgb, punc_len_train, y_train, punc_len_test, y_test
+
+
+svm = SVM()
+print("-----Model: SVM ----")
+print("CountVectorizer:")
+fit_eval(svm, train_count, y_train, test_count, y_test)
+print("TfidfVectorizer:")
+fit_eval(svm, train_tf, y_train, test_tf, y_test)
+print("LengthVector:")
+fit_eval(svm, train_len, y_train, test_len, y_test)
+print("PuncVector:")
+fit_eval(svm, punc_len_train, y_train, punc_len_test, y_test)
