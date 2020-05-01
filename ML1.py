@@ -217,16 +217,16 @@ def main(datafile):
 
     """
 
-    svm = SVM()
+    svm1 = SVM()
     print("-----Model: SVM ----")
     print("CountVectorizer:")
-    fit_eval(svm, train_count, y_train, test_count, y_test)
+    fit_eval(svm1, train_count, y_train, test_count, y_test)
     print("TfidfVectorizer:")
-    fit_eval(svm, train_tf, y_train, test_tf, y_test)
+    fit_eval(svm1, train_tf, y_train, test_tf, y_test)
     print("LengthVector:")
-    fit_eval(svm, train_len, y_train, test_len, y_test)
+    fit_eval(svm1, train_len, y_train, test_len, y_test)
     print("PuncVector:")
-    fit_eval(svm, punc_len_train, y_train, punc_len_test, y_test)
+    fit_eval(svm1, punc_len_train, y_train, punc_len_test, y_test)
 
 
 if __name__ == "__main__":
