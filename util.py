@@ -15,12 +15,12 @@ def preprocess_text(text):
     else:
         label = 1
     msg = text_split[1]
-    tokens = word_tokenize(msg.lower())
+    tokens = word_tokenize(msg)
     stemmed_tokens = [PorterStemmer().stem(w) for w in tokens]
     stop_words = set(stopwords.words('english'))
     filtered = [w for w in stemmed_tokens if w not in stop_words]
-    no_punc = [w for w in filtered if w not in string.punctuation]
-    msg = " ".join(no_punc)
+    #no_punc = [w for w in filtered if w not in string.punctuation]
+    #msg = " ".join(no_punc)
     return label, msg
 
 
