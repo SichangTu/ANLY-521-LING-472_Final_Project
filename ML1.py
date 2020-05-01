@@ -3,7 +3,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plot
-#from xgboost import XGBClassifier
+# from xgboost import XGBClassifier
 from sklearn.metrics import classification_report, accuracy_score
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.ensemble import RandomForestClassifier
@@ -17,10 +17,12 @@ import argparse
 np.random.seed(93)
 
 import nltk
+
 nltk.download('punkt')
 nltk.download('stopwords')
 
-#data_file = 'SMSSpamCollection.txt'
+
+# data_file = 'SMSSpamCollection.txt'
 
 def main(datafile):
     with open(datafile, encoding='utf-8') as f:
@@ -37,7 +39,6 @@ def main(datafile):
     y_train = np.asarray(train[1]).astype('int32').reshape((-1, 1))
     y_test = np.asarray(test[1]).astype('int32').reshape((-1, 1))
 
-
     # feature extractions
 
     def count_vec(train, test):
@@ -45,7 +46,6 @@ def main(datafile):
         train_vec = count_vector.fit_transform(train)
         test_vec = count_vector.transform(test)
         return train_vec, test_vec
-
 
     def tfidf_vec(train, test):
         tfidf_vec = TfidfVectorizer()
@@ -60,8 +60,7 @@ def main(datafile):
         test_len = np.zeros(len(test), dtype=np.int)
         for i, message in enumerate(test):
             test_len[i] = len(message)
-        return  train_len.reshape(-1,1), test_len.reshape(-1,1)
-
+        return train_len.reshape(-1, 1), test_len.reshape(-1, 1)
 
     def punc_vec(train, test):
         punc_len_train = np.zeros(len(train), dtype=np.int)
@@ -76,8 +75,6 @@ def main(datafile):
 
         return punc_len_train.reshape(-1, 1), test_len.reshape(-1, 1)
 
-
-
     # define models
 
     def MN_NB():
@@ -90,6 +87,7 @@ def main(datafile):
 
         return clf
 
+    """
     def RF():
         parameters1 = {'n_estimators': [n for n in range(50, 300, 50)],
                        'criterion': ["gini", "entropy"],
@@ -165,6 +163,7 @@ def main(datafile):
 
         return best_clf
 
+    """
 
     # fit and evaluate model
     def fit_eval(model, X_train, y_train, X_test, y_test):
@@ -173,7 +172,6 @@ def main(datafile):
         print(classification_report(y_test, preds))
         print(f"accuracy score: {accuracy_score(y_test, preds)}")
         print("\n=========================\n")
-
 
     train_count, test_count = count_vec(train[0], test[0])
     train_tf, test_tf = tfidf_vec(train[0], test[0])
@@ -193,6 +191,7 @@ def main(datafile):
     print("PuncVector")
     fit_eval(naive_bayes, punc_len_train, y_train, punc_len_test, y_test)
 
+    """
     random_forest = RF()
     print("-----Model: RandomForest ----")
     print("CountVectorizer:")
@@ -214,8 +213,9 @@ def main(datafile):
     print("LengthVector:")
     fit_eval(xgb, train_len, y_train, test_len, y_test)
     print("PuncVector:")
-    fit_eval(xgb, punc_len_train, y_train, punc_len_test, y_test)
+    fit_eval(xgb, punc_len_train, y_train, punc_len_test, y_test)    # feature extractions
 
+    """
 
     svm = SVM()
     print("-----Model: SVM ----")
@@ -229,14 +229,11 @@ def main(datafile):
     fit_eval(svm, punc_len_train, y_train, punc_len_test, y_test)
 
 
-
-
-
 if __name__ == "__main__":
-
     parser = argparse.ArgumentParser()
-    parser.add_argument("--datafile", type=str, default="SMSSpamCollection.txt",help="SMSSpamCollection data")
+    parser.add_argument("--datafile", type=str, default="SMSSpamCollection.txt", help="SMSSpamCollection data")
 
     args = parser.parse_args()
 
     main(args.datafile)
+
