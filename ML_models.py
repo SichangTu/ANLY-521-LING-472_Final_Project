@@ -2,29 +2,33 @@
 
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plot
-# from xgboost import XGBClassifier
+from xgboost import XGBClassifier
 from sklearn.metrics import classification_report, accuracy_score
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.model_selection import GridSearchCV
-from sklearn import svm
+from sklearn.svm import LinearSVC
+from sklearn.exceptions import ConvergenceWarning
 from util import preprocess_text, shuffle_dataset, split_data
 import string
 import argparse
+import os
+import warnings
 
 np.random.seed(93)
 
-import nltk
 
-nltk.download('punkt')
-nltk.download('stopwords')
+# import nltk
+#
+# nltk.download('punkt')
+# nltk.download('stopwords')
 
 
 # data_file = 'SMSSpamCollection.txt'
 
 def main(datafile):
+
     with open(datafile, encoding='utf-8') as f:
         texts = f.read().splitlines()
 
@@ -36,8 +40,8 @@ def main(datafile):
         corpus.append(msg)
 
     train, test = split_data(corpus, labels, 0.2)
-    y_train = np.asarray(train[1]).astype('int32').reshape((-1, 1))
-    y_test = np.asarray(test[1]).astype('int32').reshape((-1, 1))
+    y_train = np.asarray(train[1]).astype('int32').reshape((-1,))
+    y_test = np.asarray(test[1]).astype('int32').reshape((-1,))
 
     # feature extractions
 
@@ -76,36 +80,39 @@ def main(datafile):
         return punc_len_train.reshape(-1, 1), test_len.reshape(-1, 1)
 
     # define models
+    def SVM(X_train, y_train):
+        parameters = {'C': [0.001, 0.01, 0.1, 1, 10, 100]}
+        clf = GridSearchCV(LinearSVC(random_state=93),parameters, cv=3, n_jobs=-1, scoring='accuracy')
+        clf.fit(X_train, y_train)
+        clf = clf.best_estimator_
+
+        return clf
 
     def MN_NB():
         clf = MultinomialNB()
 
         return clf
 
-    def SVM():
-        clf = svm.SVC()
-
-        return clf
-
-    """
-    def RF():
+    def RF(X_train, y_train):
         parameters1 = {'n_estimators': [n for n in range(50, 300, 50)],
                        'criterion': ["gini", "entropy"],
                        'max_depth': (None, 4, 8, 12, 16, 20, 24, 50),
                        'min_samples_split': (2, 4, 6, 8, 10, 20, 30),
                        'min_samples_leaf': (16, 4, 12)}
 
-        clf = GridSearchCV(RandomForestClassifier(),
+        clf = GridSearchCV(RandomForestClassifier(n_jobs=3),
                            parameters1,
                            cv=5,
                            n_jobs=-1,
                            scoring="accuracy")
+        clf.fit(X_train, y_train)
+        clf = clf.best_estimator_
 
         return clf
 
-
     def xgb(X_train, y_train, X_test):
         num_of_runs = 10
+
         if not os.path.exists('optimization_result.csv'):
             os.mknod('optimization_result.csv')
 
@@ -163,10 +170,10 @@ def main(datafile):
 
         return best_clf
 
-    """
-
     # fit and evaluate model
+
     def fit_eval(model, X_train, y_train, X_test, y_test):
+
         model.fit(X_train, y_train)
         preds = model.predict(X_test)
         print(classification_report(y_test, preds))
@@ -180,8 +187,22 @@ def main(datafile):
 
     """### Train and evaluate models"""
 
-    naive_bayes = MN_NB()
+    print("-----Model: SVM ----")
+    svm = SVM(train_count, y_train)
+    print("CountVectorizer:")
+    fit_eval(svm, train_count, y_train, test_count, y_test)
+    svm1 = SVM(train_tf, y_train)
+    print("TfidfVectorizer:")
+    fit_eval(svm1, train_tf, y_train, test_tf, y_test)
+    svm2 = SVM(train_len, y_train)
+    print("LengthVector:")
+    fit_eval(svm2, train_len, y_train, test_len, y_test)
+    svm3 = SVM(punc_len_train, y_train)
+    print("PuncVector:")
+    fit_eval(svm3, punc_len_train, y_train, punc_len_test, y_test)
+
     print("-----Model: Naive Bayes----")
+    naive_bayes = MN_NB()
     print("CountVectorizer:")
     fit_eval(naive_bayes, train_count, y_train, test_count, y_test)
     print("TfidfVectorizer:")
@@ -191,42 +212,34 @@ def main(datafile):
     print("PuncVector")
     fit_eval(naive_bayes, punc_len_train, y_train, punc_len_test, y_test)
 
-    """
-    random_forest = RF()
     print("-----Model: RandomForest ----")
+    rf = RF(train_count, y_train)
     print("CountVectorizer:")
-    fit_eval(random_forest, train_count, y_train, test_count, y_test)
+    fit_eval(rf, train_count, y_train, test_count, y_test)
+    rf1 = RF(train_tf, y_train)
     print("TfidfVectorizer:")
-    fit_eval(random_forest, train_tf, y_train, test_tf, y_test)
+    fit_eval(rf1, train_tf, y_train, test_tf, y_test)
+    rf2 = RF(train_len, y_train)
     print("LengthVector:")
-    fit_eval(random_forest, train_len, y_train, test_len, y_test)
+    fit_eval(rf2, train_len, y_train, test_len, y_test)
+    rf3 = RF(punc_len_train, y_train)
     print("PuncVector:")
-    fit_eval(random_forest, punc_len_train, y_train, punc_len_test, y_test)
+    fit_eval(rf3, punc_len_train, y_train, punc_len_test, y_test)
 
-    xgb = xgb(train_count, y_train, test_count)
     print("-----Model: xgboost ----")
+    xgb_clf = xgb
+    xgb = xgb_clf(train_count, y_train, test_count)
     print("CountVectorizer:")
     fit_eval(xgb, train_count, y_train, test_count, y_test)
-    xgb = xgb(train_tf, y_train, test_tf)
+    xgb1 = xgb_clf(train_tf, y_train, test_tf)
     print("CountVectorizer:")
-    fit_eval(xgb, train_tf, y_train, test_tf, y_test)
+    fit_eval(xgb1, train_tf, y_train, test_tf, y_test)
+    xgb2 = xgb_clf(train_len, y_train, test_len)
     print("LengthVector:")
-    fit_eval(xgb, train_len, y_train, test_len, y_test)
+    fit_eval(xgb2, train_len, y_train, test_len, y_test)
+    xgb3 = xgb_clf(punc_len_train, y_train, punc_len_test)
     print("PuncVector:")
-    fit_eval(xgb, punc_len_train, y_train, punc_len_test, y_test)    # feature extractions
-
-    """
-
-    svm1 = SVM()
-    print("-----Model: SVM ----")
-    print("CountVectorizer:")
-    fit_eval(svm1, train_count, y_train, test_count, y_test)
-    print("TfidfVectorizer:")
-    fit_eval(svm1, train_tf, y_train, test_tf, y_test)
-    print("LengthVector:")
-    fit_eval(svm1, train_len, y_train, test_len, y_test)
-    print("PuncVector:")
-    fit_eval(svm1, punc_len_train, y_train, punc_len_test, y_test)
+    fit_eval(xgb3, punc_len_train, y_train, punc_len_test, y_test)  # feature extractions
 
 
 if __name__ == "__main__":
@@ -236,4 +249,3 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     main(args.datafile)
-
