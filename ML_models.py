@@ -9,23 +9,12 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.model_selection import GridSearchCV
 from sklearn.svm import LinearSVC
-from sklearn.exceptions import ConvergenceWarning
 from util import preprocess_text, shuffle_dataset, split_data
 import string
 import argparse
 import os
-import warnings
 
 np.random.seed(93)
-
-
-# import nltk
-#
-# nltk.download('punkt')
-# nltk.download('stopwords')
-
-
-# data_file = 'SMSSpamCollection.txt'
 
 def main(datafile):
 
