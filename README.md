@@ -33,9 +33,11 @@ Example usage:
 
 The running time depends on the CPU type on your computer. And RF model may take longer time to train.
 
-## Neural_Networks.py
+## neural_network.py
 
-`Neural_Networks.py` contains 2 neural network models, namely TextCNN and TextRNN. Different from the previous machine learning approach, text massages are first cleaned and padded into sequences. Then they are fed into the two models to make the predictions.
+`neural_network.py` is modified from the colab file and the original file can also been found in this repo as `neural-network.ipynb`. It contains 2 neural network models, namely TextCNN and TextRNN. Different from the previous machine learning approach, text massages are first cleaned and padded into sequences. Then they are fed into the two models to make the predictions.
 
 Example usage:
 `$ python Neural_Networks.py --datafile SMSSpamCollection.txt`
+
+The running time will depends on the CPU/GPU type you are using. Note the results of the loss and accuracy may vary, but the difference will not be large.
